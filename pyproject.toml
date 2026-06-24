@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bizcard"
+version = "0.1.0"
+description = "Professional business card generator with Claude/Anthropic design language"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "TPO Group", email = "d@tpo.group" }]
+
+dependencies = [
+    "click>=8.1.7",
+    "pillow>=10.4.0",
+    "reportlab>=4.2.2",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.3.0",
+    "qrcode[pil]>=7.4.2",
+    "structlog>=24.1.0",
+    "vobject>=0.9.6.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2.0",
+    "pytest-cov>=5.0.0",
+]
+
+[project.scripts]
+bizcard = "bizcard.cli:cli"
+
+[project.entry-points."bizcard.templates"]
+claude-minimal = "bizcard.templates.claude_minimal:ClaudeMinimalTemplate"
+claude-dark = "bizcard.templates.claude_dark:ClaudeDarkTemplate"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["bizcard*"]
+
+[tool.setuptools.package-data]
+bizcard = ["assets/fonts/*.ttf", "assets/fonts/*.otf"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["bizcard"]
+omit = ["tests/*", "examples/*"]

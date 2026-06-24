@@ -1,0 +1,12 @@
+click==8.1.7
+pillow==10.4.0
+reportlab==4.2.2
+pydantic==2.7.4
+pydantic-settings==2.3.4
+qrcode[pil]==7.4.2
+structlog==24.1.0
+vobject==0.9.6.1
+
+# Dev dependencies
+pytest==8.2.2
+pytest-cov==5.0.0
