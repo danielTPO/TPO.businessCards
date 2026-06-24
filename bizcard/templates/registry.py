@@ -98,10 +98,19 @@ def _ensure_defaults_registered() -> None:
         return
     _defaults_registered = True
 
+    from bizcard.templates.tpo_standard import TPOStandardTemplate
     from bizcard.templates.claude_minimal import ClaudeMinimalTemplate
     from bizcard.templates.claude_dark import ClaudeDarkTemplate
+    from bizcard.templates.anthropic_light import AnthropicLightTemplate
+    from bizcard.templates.anthropic_dark import AnthropicDarkTemplate
 
-    for cls in (ClaudeMinimalTemplate, ClaudeDarkTemplate):
+    for cls in (
+        TPOStandardTemplate,
+        ClaudeMinimalTemplate,
+        ClaudeDarkTemplate,
+        AnthropicLightTemplate,
+        AnthropicDarkTemplate,
+    ):
         instance = cls()
         _REGISTRY[instance.name] = instance
         log.debug("Auto-registered built-in template '%s'", instance.name)

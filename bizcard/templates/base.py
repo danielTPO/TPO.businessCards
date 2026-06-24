@@ -50,20 +50,60 @@ _RL_FONT_REGISTERED: set[str] = set()
 
 # Map logical font names → TTF filenames in assets/fonts/
 FONT_FILES: dict[str, str] = {
+    # ── Inter (legacy fallback, downloaded via scripts/download_fonts.py) ──
     "Inter-Bold": "Inter-Bold.ttf",
     "Inter-Regular": "Inter-Regular.ttf",
     "Inter-Medium": "Inter-Medium.ttf",
     "Inter-Light": "Inter-Light.ttf",
     "Inter-SemiBold": "Inter-SemiBold.ttf",
+    # ── TPO Group design system — Newsreader (display serif) ───────────────
+    # Converted from woff2 via scripts/download_fonts.py; SIL OFL 1.1
+    "Newsreader-Regular": "Newsreader-Regular.ttf",
+    "Newsreader-Medium": "Newsreader-Medium.ttf",
+    "Newsreader-SemiBold": "Newsreader-SemiBold.ttf",
+    "Newsreader-Bold": "Newsreader-Bold.ttf",
+    # ── TPO Group design system — Hanken Grotesk (body sans) ───────────────
+    "HankenGrotesk-Light": "HankenGrotesk-Light.ttf",
+    "HankenGrotesk-Regular": "HankenGrotesk-Regular.ttf",
+    "HankenGrotesk-Medium": "HankenGrotesk-Medium.ttf",
+    "HankenGrotesk-SemiBold": "HankenGrotesk-SemiBold.ttf",
+    "HankenGrotesk-Bold": "HankenGrotesk-Bold.ttf",
+    "HankenGrotesk-ExtraBold": "HankenGrotesk-ExtraBold.ttf",
+    # ── Anthropic proprietary display serif (place TTF manually if licensed) ─
+    "Tiempos-Text-Bold": "TiemposText-Bold.ttf",
+    "Tiempos-Text-Regular": "TiemposText-Regular.ttf",
 }
 
-# ReportLab built-in fallbacks (no embedding required)
+# TTF-to-TTF fallback chain: when the requested font file is absent, try these
+# other registered font names (in order) before giving up on a built-in.
+TTF_FALLBACK_CHAIN: dict[str, list[str]] = {
+    # Tiempos Text → Newsreader (both editorial serifs; Newsreader is always present)
+    "Tiempos-Text-Bold": ["Newsreader-SemiBold"],
+    "Tiempos-Text-Regular": ["Newsreader-Regular"],
+}
+
+# ReportLab built-in fallbacks used when the TTF file is absent
 RL_FALLBACK: dict[str, str] = {
     "Inter-Bold": "Helvetica-Bold",
     "Inter-Regular": "Helvetica",
     "Inter-Medium": "Helvetica",
     "Inter-Light": "Helvetica-Oblique",
     "Inter-SemiBold": "Helvetica-Bold",
+    # Newsreader → Times (closest built-in serif)
+    "Newsreader-Regular": "Times-Roman",
+    "Newsreader-Medium": "Times-Roman",
+    "Newsreader-SemiBold": "Times-Bold",
+    "Newsreader-Bold": "Times-Bold",
+    # Hanken Grotesk → Helvetica
+    "HankenGrotesk-Light": "Helvetica-Oblique",
+    "HankenGrotesk-Regular": "Helvetica",
+    "HankenGrotesk-Medium": "Helvetica",
+    "HankenGrotesk-SemiBold": "Helvetica-Bold",
+    "HankenGrotesk-Bold": "Helvetica-Bold",
+    "HankenGrotesk-ExtraBold": "Helvetica-Bold",
+    # Tiempos → Times
+    "Tiempos-Text-Bold": "Times-Bold",
+    "Tiempos-Text-Regular": "Times-Roman",
 }
 
 
@@ -76,14 +116,28 @@ def _resolve_font_path(font_name: str) -> Optional[Path]:
 
 
 def get_pil_font(font_name: str, size_pt: float, dpi: int) -> ImageFont.FreeTypeFont:
-    """Return a Pillow ``FreeTypeFont`` for *font_name* at the given size."""
+    """Return a Pillow ``FreeTypeFont`` for *font_name* at the given size.
+
+    Resolution order:
+    1. The requested font's TTF file.
+    2. Any TTF-to-TTF fallback chain entries (e.g. Tiempos → Newsreader).
+    3. PIL's built-in default font.
+    """
     size_px = max(1, round(size_pt * dpi / 72.0))
     cache_key = (font_name, size_px)
     if cache_key not in _PIL_FONT_CACHE:
-        path = _resolve_font_path(font_name)
-        if path:
-            _PIL_FONT_CACHE[cache_key] = ImageFont.truetype(str(path), size_px)
-        else:
+        # Walk the fallback chain until a file is found
+        candidates = [font_name] + TTF_FALLBACK_CHAIN.get(font_name, [])
+        loaded = False
+        for candidate in candidates:
+            path = _resolve_font_path(candidate)
+            if path:
+                if candidate != font_name:
+                    log.debug("Font '%s' not found — using '%s'", font_name, candidate)
+                _PIL_FONT_CACHE[cache_key] = ImageFont.truetype(str(path), size_px)
+                loaded = True
+                break
+        if not loaded:
             log.warning("Font '%s' not found in assets/fonts/ — using default", font_name)
             try:
                 _PIL_FONT_CACHE[cache_key] = ImageFont.load_default(size=size_px)
@@ -95,23 +149,32 @@ def get_pil_font(font_name: str, size_pt: float, dpi: int) -> ImageFont.FreeType
 def register_rl_font(font_name: str) -> str:
     """Register a TTF font with ReportLab and return the registered name.
 
-    Falls back to the nearest built-in Helvetica variant if the TTF file is not
-    found in ``assets/fonts/``.
+    Resolution order:
+    1. The requested font's TTF file.
+    2. Any TTF-to-TTF fallback chain entries (e.g. Tiempos → Newsreader).
+    3. ReportLab built-in Helvetica/Times variant.
     """
     if font_name in _RL_FONT_REGISTERED:
         return font_name
 
-    path = _resolve_font_path(font_name)
-    if path:
+    # Walk fallback chain
+    candidates = [font_name] + TTF_FALLBACK_CHAIN.get(font_name, [])
+    for candidate in candidates:
+        path = _resolve_font_path(candidate)
+        if not path:
+            continue
         try:
             from reportlab.pdfbase import pdfmetrics
             from reportlab.pdfbase.ttfonts import TTFont
 
+            if candidate != font_name:
+                log.debug("Font '%s' not found — using '%s'", font_name, candidate)
+            # Register under the *requested* name so templates always use the same key
             pdfmetrics.registerFont(TTFont(font_name, str(path)))
             _RL_FONT_REGISTERED.add(font_name)
             return font_name
         except Exception as exc:  # noqa: BLE001
-            log.warning("Could not register font '%s': %s", font_name, exc)
+            log.warning("Could not register font '%s' (from %s): %s", font_name, candidate, exc)
 
     fallback = RL_FALLBACK.get(font_name, "Helvetica")
     log.debug("Using ReportLab built-in '%s' as fallback for '%s'", fallback, font_name)

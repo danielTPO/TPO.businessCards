@@ -114,7 +114,7 @@ class BizCardSettings(BaseSettings):
     output_dir: Path = Field(default=Path("./output"), description="Default output directory")
     dpi: int = Field(default=300, ge=72, le=1200, description="Print DPI")
     preview_dpi: int = Field(default=150, ge=72, le=600, description="Screen-preview DPI")
-    default_template: str = Field(default="claude-minimal", description="Template name")
+    default_template: str = Field(default="tpo-standard", description="Template name")
     default_orientation: Literal["landscape", "portrait"] = Field(default="landscape")
     include_bleed: bool = Field(default=True, description="Add bleed area to PDF output")
     bleed_in: float = Field(default=0.125, description="Bleed in inches")

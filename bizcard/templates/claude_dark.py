@@ -1,19 +1,22 @@
-"""ClaudeDarkTemplate — near-black background variant.
+"""ClaudeDarkTemplate — TPO Group dark card (deep forest background).
 
-Inherits the full layout logic from :class:`ClaudeMinimalTemplate` and
-overrides only the :meth:`design_tokens` palette so that the structural
-design decisions (rule position, spacing, logo zone) stay in sync between
-the light and dark variants automatically.
+Inherits all layout geometry from :class:`ClaudeMinimalTemplate` and
+overrides only :meth:`design_tokens` with the TPO Group dark-mode palette
+sourced from ``_ds/tpo-group-design-system/colors_and_type.css``.
 
-Palette choices:
-    - Background ``#0D0D0D`` — a warm near-black (not pure black) so that
-      printed ink doesn't look flat.
-    - Primary text ``#F5F5F0`` — off-white with a warm tint to avoid harsh
-      contrast and reduce halation on coated stock.
-    - Secondary text ``#9A9A94`` — the same copper-grey used on the light
-      card, readable against the dark background.
-    - Accent ``#C96A3A`` — identical copper; the brand colour appears
-      identical on both variants for cohesion in a paired set.
+TPO design token mapping:
+  bg_color        → --bg-dark / --tpo-forest-900   #042B1B
+  text_primary    → --fg-on-dark                   #F4F7F5
+  text_secondary  → --fg-on-dark-2                 #B7C5BD
+  text_tertiary   → --tpo-ink-400                  #82918A
+  accent_color    → --tpo-emerald-400               #3CBE85  (lighter for visibility on dark)
+  font_display    → --font-display "Newsreader" SemiBold
+  font_body       → --font-sans   "Hanken Grotesk" Regular/SemiBold
+
+The deep forest background (#042B1B) is the ``--bg-dark`` hero/footer colour
+in the TPO system — the darkest point of the brand, authoritative and serious.
+The emerald-400 accent (#3CBE85) is used here instead of emerald-600 to
+maintain legibility against the dark ground.
 """
 
 from __future__ import annotations
@@ -28,11 +31,10 @@ if TYPE_CHECKING:
 
 
 class ClaudeDarkTemplate(ClaudeMinimalTemplate):
-    """Near-black background Claude design language card template.
+    """TPO Group dark card — deep forest green background, TPO design system.
 
-    Inherits all layout geometry from :class:`ClaudeMinimalTemplate` — only
-    the colour palette differs.  This is intentional: the two templates form
-    a cohesive matched pair.
+    Forms a cohesive matched pair with :class:`ClaudeMinimalTemplate`.
+    Only the colour palette differs; all layout geometry is inherited.
     """
 
     @property
@@ -41,36 +43,36 @@ class ClaudeDarkTemplate(ClaudeMinimalTemplate):
 
     @property
     def description(self) -> str:
-        return "Near-black background (#0D0D0D), off-white text, copper accent — dark variant"
+        return "Deep forest (#042B1B) background, TPO Group dark palette, Newsreader + Hanken Grotesk"
 
     def design_tokens(self) -> DesignTokens:
-        """Dark-theme palette: same structure as light, flipped colours."""
+        """TPO Group dark-card palette from colors_and_type.css."""
         return DesignTokens(
-            # ── Palette (dark) ────────────────────────────────────────
-            bg_color="#0D0D0D",          # warm near-black card face
-            text_primary="#F5F5F0",      # warm off-white — easier on coated stock
-            text_secondary="#9A9A94",    # copper-grey secondary text
-            text_tertiary="#6B6B6B",     # muted grey for smallest text
-            accent_color="#C96A3A",      # same copper — brand identity is consistent
-            # ── Typography — identical to light variant ───────────────
-            font_display="Inter-Bold",
-            font_body="Inter-Regular",
-            font_medium="Inter-Medium",
-            font_light="Inter-Light",
-            # ── Font sizes (pt) — identical to light variant ──────────
+            # ── Palette — TPO dark mode ───────────────────────────────
+            bg_color="#042B1B",          # --bg-dark / --tpo-forest-900 — deepest brand green
+            text_primary="#F4F7F5",      # --fg-on-dark — warm near-white on dark
+            text_secondary="#B7C5BD",    # --fg-on-dark-2 — muted green-grey secondary
+            text_tertiary="#82918A",     # --tpo-ink-400 — quieter labels
+            accent_color="#3CBE85",      # --tpo-emerald-400 — lighter emerald for dark bg legibility
+            # ── Typography — TPO design system ────────────────────────
+            font_display="Newsreader-SemiBold",
+            font_body="HankenGrotesk-Regular",
+            font_medium="HankenGrotesk-SemiBold",
+            font_light="HankenGrotesk-Light",
+            # ── Font sizes (pt) ───────────────────────────────────────
             size_name=18.0,
             size_title=9.0,
             size_company=8.5,
             size_detail=8.0,
             size_small=7.5,
-            # ── Spacing — identical to light variant ──────────────────
+            # ── Spacing ───────────────────────────────────────────────
             margin_left=14.0,
             margin_right=14.0,
             margin_top=12.0,
             margin_bottom=12.0,
             line_gap=4.0,
             section_gap=10.0,
-            # ── Accent rule — same position, same weight ──────────────
+            # ── Accent rule ───────────────────────────────────────────
             accent_rule_width=0.5,
             accent_rule_y_ratio=0.46,
             # ── Logo / monogram ───────────────────────────────────────
@@ -82,19 +84,14 @@ class ClaudeDarkTemplate(ClaudeMinimalTemplate):
         )
 
     def render_back(self, contact: "Contact", ctx: RenderContext) -> None:
-        """Dark back face with centred copper accent mark."""
+        """Deep-forest back face with centred emerald accent mark."""
         t = self.design_tokens()
-        bg = hex_to_rgb(t.bg_color)
-        accent = hex_to_rgb(t.accent_color)
-
-        ctx.fill_background(bg)
-
+        ctx.fill_background(hex_to_rgb(t.bg_color))
         W = ctx.card_width_pt
         H = ctx.card_height_pt
-        # A slightly longer accent mark on the back to fill more of the space
         ctx.draw_line(
             W * 0.15, H / 2,
             W * 0.85, H / 2,
-            color=accent,
+            color=hex_to_rgb(t.accent_color),
             width_pt=t.accent_rule_width,
         )

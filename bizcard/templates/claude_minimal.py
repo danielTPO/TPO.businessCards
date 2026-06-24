@@ -1,33 +1,37 @@
-"""ClaudeMinimalTemplate — light-background reference implementation.
+"""ClaudeMinimalTemplate — TPO Group light card (white background).
 
 Design rationale
 ----------------
-This template is the reference implementation for the Anthropic / Claude design
-language.  Every decision references a named design token so the system remains
-easy to audit and update globally.
+This is the primary light-background template using the TPO Group design system
+tokens sourced from ``_ds/tpo-group-design-system/colors_and_type.css``.
 
 Visual anatomy (landscape card, 252 × 144 pt):
 
   ┌──────────────────────────────────────────────────────────┐
   │  [margin_top]                             [logo zone]   │
-  │  Jane Smith                                  ██         │  ← name / font_display / size_name
-  │  Senior Engineer                                        │  ← title / font_body / size_title
+  │  Jane Smith                                  ██         │  ← name / Newsreader-SemiBold / size_name
+  │  Senior Engineer                                        │  ← title / HankenGrotesk-Regular / size_title
   │                                                         │
-  │ ─────────────────────────────────────────────────────── │  ← accent rule / accent_color / accent_rule_width
+  │ ─────────────────────────────────────────────────────── │  ← accent rule / --tpo-emerald-600 / 0.5pt
   │                                                         │
-  │  Acme Corp                          ┌──────────────┐   │  ← company / font_medium / size_company
-  │  jane@acme.com                      │              │   │  ← email / font_body / size_detail
-  │  +1 555 000 1234                    │   QR code    │   │  ← phone
-  │  acme.com                           │              │   │  ← website
+  │  Acme Corp                          ┌──────────────┐   │  ← company / HankenGrotesk-SemiBold / size_company
+  │  jane@acme.com                      │              │   │  ← details / HankenGrotesk-Regular / size_detail
+  │  +1 555 000 1234                    │   QR code    │   │
+  │  acme.com                           │              │   │
   │                                     └──────────────┘   │
   └──────────────────────────────────────────────────────────┘
 
-Key choices:
-- Near-white background (#FFFFFF) for maximum contrast and clean print
-- Copper accent line (#C96A3A) is the *only* decorative element — it divides
-  the two content blocks and provides visual rhythm without noise
-- Name at 18pt Inter Bold — readable, authoritative, human
-- All contact details in a single left-anchored column; no icon noise
+TPO design token mapping:
+  bg_color        → --bg-1 / --tpo-paper    #FFFFFF
+  text_primary    → --fg-1 / --tpo-ink-900  #0B0F0D
+  text_secondary  → --fg-2 / --tpo-ink-700  #243029
+  text_tertiary   → --fg-3 / --tpo-ink-500  #586860
+  accent_color    → --fg-accent-bright / --tpo-emerald-600  #0E8E54
+  font_display    → --font-display  "Newsreader" (SemiBold weight)
+  font_body       → --font-sans     "Hanken Grotesk" (Regular/Medium)
+
+The emerald rule replaces the former copper rule; it anchors the card to the
+TPO brand spectrum (forest-green → emerald → teal → blue "bars" motif).
 - If a QR code URL is provided it floats to the right of the contact block
 - If a logo file is provided it appears top-right; otherwise initials render
   in a minimal typographic treatment using the accent colour
@@ -66,19 +70,19 @@ class ClaudeMinimalTemplate(BaseTemplate):
         return "White background, copper accent line, Inter typeface — Anthropic design language"
 
     def design_tokens(self) -> DesignTokens:
-        """Light-theme palette anchored to Anthropic brand colours."""
+        """TPO Group light-card palette from colors_and_type.css."""
         return DesignTokens(
-            # ── Palette ──────────────────────────────────────────────
-            bg_color="#FFFFFF",          # crisp white card face
-            text_primary="#1A1A1A",      # near-black for maximum contrast on white
-            text_secondary="#6B6B6B",    # warm mid-grey for title / less-prominent fields
-            text_tertiary="#9A9A94",     # lighter grey for small supplementary text
-            accent_color="#C96A3A",      # warm copper — Anthropic brand accent
-            # ── Typography ───────────────────────────────────────────
-            font_display="Inter-Bold",   # characterful weight for the name
-            font_body="Inter-Regular",   # utility face for contact details
-            font_medium="Inter-Medium",  # medium weight for company name
-            font_light="Inter-Light",    # light for secondary labels
+            # ── Palette — from TPO Group design system ────────────────
+            bg_color="#FFFFFF",          # --bg-1 / --tpo-paper
+            text_primary="#0B0F0D",      # --fg-1 / --tpo-ink-900
+            text_secondary="#243029",    # --fg-2 / --tpo-ink-700
+            text_tertiary="#586860",     # --fg-3 / --tpo-ink-500
+            accent_color="#0E8E54",      # --fg-accent-bright / --tpo-emerald-600
+            # ── Typography — TPO design system font stack ─────────────
+            font_display="Newsreader-SemiBold",     # --font-display, editorial serif for the name
+            font_body="HankenGrotesk-Regular",       # --font-sans, humanist grotesque for details
+            font_medium="HankenGrotesk-SemiBold",    # weight for company name
+            font_light="HankenGrotesk-Light",        # lighter labels
             # ── Font sizes (pt) ───────────────────────────────────────
             size_name=18.0,
             size_title=9.0,
@@ -92,9 +96,7 @@ class ClaudeMinimalTemplate(BaseTemplate):
             margin_bottom=12.0,
             line_gap=4.0,
             section_gap=10.0,
-            # ── Accent rule ───────────────────────────────────────────
-            # The line sits at 45 % of the card height — it bisects the card
-            # just above centre, weighting the name block visually.
+            # ── Accent rule — TPO emerald replaces former copper ──────
             accent_rule_width=0.5,
             accent_rule_y_ratio=0.46,
             # ── Logo / monogram ───────────────────────────────────────

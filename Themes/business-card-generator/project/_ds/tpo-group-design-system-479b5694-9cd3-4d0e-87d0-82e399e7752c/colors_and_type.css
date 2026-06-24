@@ -1,0 +1,245 @@
+/* ==========================================================================
+   TPO GROUP — Colors & Type
+   --------------------------------------------------------------------------
+   Cybersecurity consulting. Brand sits on two greens (a deep forest "TPO"
+   green and a brighter emerald ".group" green), with a teal→blue spectrum
+   used in the "bars" motif. Restrained, serious, government/enterprise.
+   --------------------------------------------------------------------------
+   Typography pairing:
+     Display / headings — Newsreader (transitional editorial serif).
+                          Gives headlines policy-paper / whitepaper gravitas.
+     Body / UI         — Hanken Grotesk (humanist grotesque).
+                          Technical, calm, holds up at 12–16px.
+     Mono              — JetBrains Mono.
+   All three families are self-hosted from ./fonts/. No external CDN needed.
+   ========================================================================== */
+
+@import url('./fonts/fonts.css');
+
+:root {
+  /* ---------- PRIMARY GREENS ------------------------------------------- */
+  --tpo-forest-900: #042B1B;   /* deepest, near-black header backgrounds   */
+  --tpo-forest-800: #06371F;   /* the "TPO" letterforms in the logo        */
+  --tpo-forest-700: #0B4A2A;
+  --tpo-forest-600: #0F5E36;
+  --tpo-emerald-600: #0E8E54;  /* the ".group" letterforms                 */
+  --tpo-emerald-500: #14A164;
+  --tpo-emerald-400: #3CBE85;
+  --tpo-emerald-100: #DCF1E6;  /* tint, hover wash                         */
+  --tpo-emerald-50:  #EEF8F2;  /* page-section tint                        */
+
+  /* ---------- BARS-MOTIF SPECTRUM (green → teal → blue) ---------------- */
+  --tpo-bar-1: #06371F;
+  --tpo-bar-2: #0E8E54;
+  --tpo-bar-3: #0C9C7B;
+  --tpo-bar-4: #0E8FA8;
+  --tpo-bar-5: #1378B8;
+  --tpo-bar-6: #1A6BC9;
+  --tpo-bar-7: #185BB0;
+  --tpo-bar-8: #0E8FA8;
+  --tpo-bar-9: #0E8E54;
+
+  /* ---------- NEUTRALS -------------------------------------------------- */
+  --tpo-ink-900: #0B0F0D;
+  --tpo-ink-800: #14201A;
+  --tpo-ink-700: #243029;
+  --tpo-ink-600: #3B4A42;
+  --tpo-ink-500: #586860;
+  --tpo-ink-400: #82918A;
+  --tpo-ink-300: #B5BFB9;
+  --tpo-ink-200: #D8DEDA;
+  --tpo-ink-100: #ECEFED;
+  --tpo-ink-50:  #F6F8F6;
+  --tpo-paper:   #FFFFFF;
+  --tpo-cream:   #FBFAF6;     /* very subtle warm off-white                */
+
+  /* ---------- SEMANTIC -------------------------------------------------- */
+  --tpo-success: #14A164;
+  --tpo-warning: #C58A0E;
+  --tpo-danger:  #B53A2C;
+  --tpo-info:    #1378B8;
+
+  /* ---------- FOREGROUND / BACKGROUND ROLES ---------------------------- */
+  --fg-1: var(--tpo-ink-900);              /* primary text                 */
+  --fg-2: var(--tpo-ink-700);              /* secondary text               */
+  --fg-3: var(--tpo-ink-500);              /* tertiary / captions          */
+  --fg-mute: var(--tpo-ink-400);
+  --fg-on-dark: #F4F7F5;
+  --fg-on-dark-2: #B7C5BD;
+  --fg-accent: var(--tpo-forest-800);
+  --fg-accent-bright: var(--tpo-emerald-600);
+
+  --bg-1: var(--tpo-paper);
+  --bg-2: var(--tpo-ink-50);
+  --bg-3: var(--tpo-ink-100);
+  --bg-dark: var(--tpo-forest-900);        /* dark hero / footer            */
+  --bg-dark-2: #08200F;
+
+  --border-1: rgba(11, 15, 13, 0.10);
+  --border-2: rgba(11, 15, 13, 0.18);
+  --border-on-dark: rgba(255, 255, 255, 0.14);
+
+  /* ---------- TYPEFACES ------------------------------------------------- */
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Newsreader", "Iowan Old Style", "Charter", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Newsreader is an optical-size font; nudge the optical size for display use */
+  --display-fvs: "opsz" 60;
+  --headline-fvs: "opsz" 32;
+
+  /* ---------- TYPE SCALE (modular, 1.250) ------------------------------ */
+  --fs-12: 0.75rem;
+  --fs-13: 0.8125rem;
+  --fs-14: 0.875rem;
+  --fs-16: 1rem;          /* body                                          */
+  --fs-18: 1.125rem;
+  --fs-20: 1.25rem;
+  --fs-24: 1.5rem;        /* h4                                            */
+  --fs-30: 1.875rem;      /* h3                                            */
+  --fs-36: 2.25rem;       /* h2                                            */
+  --fs-48: 3rem;          /* h1                                            */
+  --fs-64: 4rem;          /* display                                       */
+  --fs-80: 5rem;          /* mega display                                  */
+
+  --lh-tight: 1.05;
+  --lh-snug: 1.2;
+  --lh-base: 1.5;
+  --lh-relaxed: 1.65;
+
+  --tracking-tight: -0.02em;
+  --tracking-snug: -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+  --tracking-caps: 0.12em;      /* eyebrow / nav / "TECHNOLOGY.POLICY..."    */
+
+  /* ---------- SPACING (4-pt) ------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* ---------- RADII ----------------------------------------------------- */
+  --radius-0: 0;                /* default — squared, government feel      */
+  --radius-1: 2px;
+  --radius-2: 4px;
+  --radius-3: 6px;
+  --radius-pill: 9999px;
+
+  /* ---------- ELEVATION / SHADOWS -------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(11, 15, 13, 0.04), 0 1px 3px rgba(11, 15, 13, 0.06);
+  --shadow-md: 0 4px 12px rgba(11, 15, 13, 0.06), 0 2px 4px rgba(11, 15, 13, 0.04);
+  --shadow-lg: 0 16px 36px rgba(11, 15, 13, 0.10), 0 4px 8px rgba(11, 15, 13, 0.04);
+  --shadow-xl: 0 28px 64px rgba(6, 55, 31, 0.16);
+  --shadow-inset: inset 0 0 0 1px var(--border-1);
+
+  /* ---------- MOTION ---------------------------------------------------- */
+  --ease-standard: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --dur-pageful: 600ms;
+}
+
+/* ==========================================================================
+   SEMANTIC TYPE — drop these classes on elements directly
+   ========================================================================== */
+
+html { font-family: var(--font-sans); color: var(--fg-1); }
+body { font-size: var(--fs-16); line-height: var(--lh-base); }
+
+.tpo-display {
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-fvs);
+  font-weight: 600;
+  font-size: clamp(var(--fs-48), 6.4vw, var(--fs-80));
+  line-height: var(--lh-tight);
+  letter-spacing: -0.018em;
+  color: var(--fg-accent);
+}
+.tpo-h1 {
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-fvs);
+  font-weight: 600;
+  font-size: clamp(var(--fs-36), 4.4vw, var(--fs-64));
+  line-height: var(--lh-tight);
+  letter-spacing: -0.015em;
+  color: var(--fg-accent);
+}
+.tpo-h2 {
+  font-family: var(--font-display);
+  font-variation-settings: var(--headline-fvs);
+  font-weight: 600;
+  font-size: var(--fs-36);
+  line-height: var(--lh-snug);
+  letter-spacing: -0.012em;
+  color: var(--fg-accent);
+}
+.tpo-h3 {
+  font-family: var(--font-display);
+  font-variation-settings: var(--headline-fvs);
+  font-weight: 600;
+  font-size: var(--fs-24);
+  line-height: var(--lh-snug);
+  letter-spacing: -0.008em;
+  color: var(--fg-1);
+}
+.tpo-h4 {
+  font-weight: 700;
+  font-size: var(--fs-20);
+  line-height: var(--lh-snug);
+  color: var(--fg-1);
+}
+.tpo-lede {
+  font-weight: 400;
+  font-size: var(--fs-20);
+  line-height: var(--lh-relaxed);
+  color: var(--fg-2);
+}
+.tpo-body {
+  font-weight: 400;
+  font-size: var(--fs-16);
+  line-height: var(--lh-relaxed);
+  color: var(--fg-1);
+}
+.tpo-small {
+  font-size: var(--fs-14);
+  line-height: var(--lh-base);
+  color: var(--fg-2);
+}
+.tpo-eyebrow {
+  font-weight: 700;
+  font-size: var(--fs-13);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--fg-accent-bright);
+}
+.tpo-pillar {
+  /* used for "TECHNOLOGY", "POLICY", "OPERATIONS" headings
+     — stays in the sans, set in caps, for a typographic break vs the serifs. */
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: var(--fs-24);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-accent);
+}
+.tpo-caption {
+  font-size: var(--fs-12);
+  letter-spacing: var(--tracking-wide);
+  color: var(--fg-3);
+}
+.tpo-mono {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+}

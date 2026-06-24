@@ -42,6 +42,7 @@ class Contact(BaseModel):
     company: Optional[str] = Field(default=None, max_length=120)
     email: Optional[str] = Field(default=None)
     phone: Optional[str] = Field(default=None, max_length=40)
+    signal: Optional[str] = Field(default=None, max_length=60)
     website: Optional[str] = Field(default=None, max_length=200)
     linkedin: Optional[str] = Field(default=None, max_length=200)
     address: Optional[str] = Field(default=None, max_length=200)
@@ -111,7 +112,7 @@ class Contact(BaseModel):
     @model_validator(mode="after")
     def _strip_empty_strings(self) -> "Contact":
         """Ensure blank/whitespace-only strings become None for optional text fields."""
-        for field in ("title", "company", "address", "qr_url"):
+        for field in ("title", "company", "signal", "address", "qr_url"):
             val = getattr(self, field)
             if val is not None and str(val).strip() == "":
                 object.__setattr__(self, field, None)
@@ -167,6 +168,7 @@ class Contact(BaseModel):
             ("company", self.company),
             ("email", self.email),
             ("phone", self.phone),
+            ("signal", f"Signal: {self.signal}" if self.signal else None),
             ("web", self.website),
             ("linkedin", self.linkedin),
             ("address", self.address),
