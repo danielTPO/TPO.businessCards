@@ -3,9 +3,9 @@
 Visual anatomy (landscape card, 252 × 144 pt):
 
   ┌──────────────────────────────────────────────────────────────┐
-  │                       │  Daniel Landry          [QR code]   │
+  │                       │  Daniel Landry                      │
   │   TPO.group           │  Intern                             │
-  │   ▐▌▐▌▐▌▐▌▐▌▐▌▐▌▐▌▐▌  │                                     │
+  │   ▐▌▐▌▐▌▐▌▐▌▐▌▐▌▐▌▐▌  │                         [QR code]            │
   │   (bars motif)        │  (xxx) xxx-xxxx         [QR code]   │
   │                       │  xxx@xxx.xxx            [QR code]   │
   │                       │  Signal: xxx                        │
@@ -43,17 +43,18 @@ _LOGO_BARS = ASSETS_DIR / "tpo-logo-bars.png"
 _LOGO_WORDMARK = ASSETS_DIR / "tpo-logo.png"
 _LOGO_WHITE = ASSETS_DIR / "tpo-logo-white.png"
 
-# Fraction of logo-bars height to crop (removes the faint tagline at the bottom)
-_BARS_CROP_RATIO = 0.72
-
 
 def _load_bars_logo() -> Optional[Image.Image]:
-    """Load tpo-logo-bars.png cropped to wordmark + bars (no tagline)."""
+    """Load tpo-logo-bars.png tightly cropped to its actual content bounding box.
+
+    Uses ``Image.getbbox()`` so the natural wavy bottom of the bars is
+    preserved regardless of how much transparent padding the source file has.
+    """
     if not _LOGO_BARS.exists():
         return None
     img = Image.open(_LOGO_BARS).convert("RGBA")
-    crop_h = int(img.height * _BARS_CROP_RATIO)
-    return img.crop((0, 0, img.width, crop_h))
+    bbox = img.getbbox()          # (left, upper, right, lower) of non-empty region
+    return img.crop(bbox) if bbox else img
 
 
 def _load_white_wordmark() -> Optional[Image.Image]:
@@ -83,27 +84,27 @@ class TPOStandardTemplate(BaseTemplate):
         return DesignTokens(
             # ── Palette ───────────────────────────────────────────────
             bg_color="#FFFFFF",
-            text_primary="#0B0F0D",       # --tpo-ink-900
-            text_secondary="#243029",     # --tpo-ink-700
+            text_primary="#06371F",       # --tpo-forest-800, really dark green
+            text_secondary="#243029",     # --tpo-ink-700, deep green-grey
             text_tertiary="#586860",      # --tpo-ink-500
             accent_color="#0E8E54",       # --tpo-emerald-600
-            # ── Typography ────────────────────────────────────────────
-            font_display="HankenGrotesk-Bold",
-            font_body="HankenGrotesk-Regular",
-            font_medium="HankenGrotesk-SemiBold",
-            font_light="HankenGrotesk-Light",
+            # ── Typography — Newsreader serif throughout ──────────────────
+            font_display="Newsreader-SemiBold",   # 600 weight for name
+            font_body="Newsreader-Regular",        # 400 weight for title + contact
+            font_medium="Newsreader-Medium",       # 500 weight if needed
+            font_light="HankenGrotesk-Light",      # back tagline (no Newsreader-Light)
             # ── Font sizes (pt) ───────────────────────────────────────
-            size_name=13.0,
-            size_title=8.0,
-            size_company=8.0,
-            size_detail=7.5,
-            size_small=6.5,
+            size_name=16.0,
+            size_title=9.5,
+            size_company=9.0,
+            size_detail=9.0,
+            size_small=7.5,
             # ── Spacing ───────────────────────────────────────────────
             margin_left=10.0,
             margin_right=10.0,
             margin_top=11.0,
             margin_bottom=11.0,
-            line_gap=3.0,
+            line_gap=2.0,        # tighter line spacing
             section_gap=8.0,
             # ── Accent rule (unused ratio field — rule is always at bottom) ──
             accent_rule_width=0.5,
@@ -111,7 +112,7 @@ class TPOStandardTemplate(BaseTemplate):
             # ── Logo / QR ─────────────────────────────────────────────
             logo_size_pt=28.0,
             logo_padding_pt=4.0,
-            qr_size_pt=30.0,
+            qr_size_pt=50.0,     # much larger QR
             qr_padding_pt=3.0,
         )
 
@@ -203,7 +204,7 @@ class TPOStandardTemplate(BaseTemplate):
         # so name and title span the full right column width.
         full_w = col_right - col_x
 
-        y_cursor = MT
+        y_cursor = MT + 20
         y_cursor = ctx.draw_text(
             col_x, y_cursor,
             contact.name,
@@ -224,10 +225,22 @@ class TPOStandardTemplate(BaseTemplate):
                 max_width_pt=full_w,
             )
 
+        # ── QR code (right of contact block) ──────────────────────────
+        # QR_Y is the top edge of the QR code in points. Decrease to move up.
+        QR_Y    = H * 0.495 - 20
+        qr_bot  = QR_Y + qr_size   # bottom edge of QR zone
+        narrow_w = qr_x - t.qr_padding_pt - col_x   # width when sharing row with QR
+
+        if qr_image:
+            ctx.draw_image(qr_x, QR_Y, qr_size, qr_size, qr_image)
+
         # ── Contact block (lower portion) ─────────────────────────────
-        # Phone / email / signal stack on the left; QR code floats right.
-        contact_y    = H * 0.495    # ≈ 71 pt — start of lower block
-        contact_max_w = (qr_x - t.qr_padding_pt - col_x) if qr_image else full_w
+        # Width is constrained only while the line's top edge is inside the QR
+        # zone; lines that start below the QR bottom get the full column width.
+        contact_y = H * 0.495 + 10
+
+        def _w(y: float) -> float:
+            return narrow_w if (qr_image and y < qr_bot) else full_w
 
         if contact.phone:
             contact_y = ctx.draw_text(
@@ -236,7 +249,7 @@ class TPOStandardTemplate(BaseTemplate):
                 font_name=t.font_body,
                 size_pt=t.size_detail,
                 color=secondary,
-                max_width_pt=contact_max_w,
+                max_width_pt=_w(contact_y),
             )
             contact_y += t.line_gap
 
@@ -247,7 +260,7 @@ class TPOStandardTemplate(BaseTemplate):
                 font_name=t.font_body,
                 size_pt=t.size_detail,
                 color=secondary,
-                max_width_pt=contact_max_w,
+                max_width_pt=_w(contact_y),
             )
             contact_y += t.line_gap
 
@@ -258,12 +271,8 @@ class TPOStandardTemplate(BaseTemplate):
                 font_name=t.font_body,
                 size_pt=t.size_detail,
                 color=secondary,
-                max_width_pt=contact_max_w,
+                max_width_pt=_w(contact_y),
             )
-
-        # ── QR code (right of contact block) ──────────────────────────
-        if qr_image:
-            ctx.draw_image(qr_x, H * 0.495, qr_size, qr_size, qr_image)
 
         # ── Bottom emerald rule ────────────────────────────────────────
         rule_y = H - MB * 0.55
@@ -289,8 +298,8 @@ class TPOStandardTemplate(BaseTemplate):
         wm = _load_white_wordmark()
 
         if wm:
-            # Scale to 50 % of card width, maintain aspect ratio
-            wm_w = W * 0.50
+            # Scale to 60 % of card width, maintain aspect ratio
+            wm_w = W * 0.60
             wm_h = wm_w * (wm.height / wm.width)
 
             # Content block = wordmark + 8pt gap + tagline (~8pt)
@@ -302,7 +311,6 @@ class TPOStandardTemplate(BaseTemplate):
             tagline_y = wm_y + wm_h + 8.0
         else:
             # Fallback: render "TPO.group" as text if image is unavailable
-            name_w = ctx.measure_text_width("TPO.group", t.font_display, 20.0)
             block_h = 20.0 + 8.0 + 8.0
             ty = (H - block_h) / 2
             ctx.draw_text(

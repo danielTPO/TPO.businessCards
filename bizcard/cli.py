@@ -123,9 +123,10 @@ def cli(ctx: click.Context, verbose: bool) -> None:
 @click.option("--website", default=None, help="Website URL.")
 @click.option("--linkedin", default=None, help="LinkedIn handle or URL.")
 @click.option("--address", default=None, help="Mailing address.")
+@click.option("--signal", default=None, help="Signal messenger handle.")
 @click.option("--logo", default=None, help="Path to a logo file (PNG).", type=click.Path(exists=True))
 @click.option("--qr-url", default=None, help="URL to encode in a QR code on the card.")
-@click.option("--back/--no-back", default=False, help="Include a back face.")
+@click.option("--back/--no-back", default=True, help="Include a back face (default: on).")
 @click.option("--png/--no-png", default=False, help="Also write a PNG preview.")
 @_TEMPLATE_OPT
 @_ORIENTATION_OPT
@@ -138,6 +139,7 @@ def generate(
     company: Optional[str],
     email: Optional[str],
     phone: Optional[str],
+    signal: Optional[str],
     website: Optional[str],
     linkedin: Optional[str],
     address: Optional[str],
@@ -170,6 +172,7 @@ def generate(
         company=company,
         email=email,
         phone=phone,
+        signal=signal,
         website=website,
         linkedin=linkedin,
         address=address,

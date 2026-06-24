@@ -18,15 +18,14 @@ python scripts/download_fonts.py
 
 # 3. Generate a single card
 python -m bizcard generate \
-  --name "Jane Smith" \
-  --title "Senior Engineer" \
-  --company "Acme Corp" \
-  --email jane@acme.com \
-  --phone "+1 555 000 1234" \
-  --website acme.com \
-  --template claude-minimal \
-  --output ./output/
-
+  --name "Daniel Landry" \
+  --title "Intern" \
+  --phone "(xxx) xxx-xxxx" \
+  --email "d@tpo.group" \
+  --signal "daniellandry" \
+  --qr-url "https://linkedin.com/in/daniellandry" \
+  --output ./output
+  
 # 4. Batch generate from CSV
 python -m bizcard batch \
   --input examples/sample_contacts.csv \
