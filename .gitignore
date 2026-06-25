@@ -32,3 +32,5 @@ output/
 .DS_Store
 *.swp
 *.swo
+.vercel
+.env*

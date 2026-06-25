@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import OrderForm from './components/OrderForm'
+import CardPreview from './components/CardPreview'
 import StatusBanner from './components/StatusBanner'
 import './styles/global.css'
 
@@ -24,6 +25,11 @@ export default function App() {
             onDismiss={() => setStatus(null)}
           />
         )}
+        <div className="form-section" style={{ marginBottom: 28 }}>
+          <h2 className="section-title">Example Card</h2>
+          <CardPreview />
+        </div>
+
         <OrderForm
           onSuccess={(data) =>
             setStatus({

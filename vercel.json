@@ -4,7 +4,6 @@
   "outputDirectory": "dist",
   "functions": {
     "api/orders.py": {
-      "runtime": "python3.12",
       "maxDuration": 30
     }
   }

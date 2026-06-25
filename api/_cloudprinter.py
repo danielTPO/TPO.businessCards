@@ -1,6 +1,7 @@
 """Cloudprinter CloudCore 1.0 API client."""
 from __future__ import annotations
 
+import json
 import os
 from typing import Optional
 
@@ -8,7 +9,6 @@ import httpx
 
 _BASE = "https://api.cloudprinter.com/cloudcore/1.0"
 
-# Fixed delivery address — cards always ship to the TPO Group Portland office
 _DELIVERY_ADDRESS = {
     "type": "delivery",
     "company": "TPO Group",
@@ -18,6 +18,21 @@ _DELIVERY_ADDRESS = {
     "state": "ME",
     "country": "US",
 }
+
+
+class CloudprinterError(Exception):
+    """Raised when Cloudprinter returns a non-2xx response."""
+
+    def __init__(self, status_code: int, body: str) -> None:
+        self.status_code = status_code
+        self.body = body
+        # Try to pretty-print JSON bodies for readability
+        try:
+            parsed = json.loads(body)
+            self.body = json.dumps(parsed, indent=2)
+        except Exception:
+            pass
+        super().__init__(f"HTTP {status_code}")
 
 
 def _item_options(quantity: int) -> list[dict]:
@@ -33,7 +48,6 @@ async def _fetch_quote(
     apikey: str,
     quantity: int,
 ) -> Optional[str]:
-    """Request a price quote; return the hash string or None on failure."""
     payload = {
         "apikey": apikey,
         "country": "US",
@@ -64,7 +78,7 @@ async def submit_order(
     """Submit a business card order to Cloudprinter CloudCore 1.0.
 
     Raises:
-        RuntimeError: If Cloudprinter returns a non-2xx response.
+        CloudprinterError: Non-2xx response from Cloudprinter (includes status code + body).
     """
     apikey = os.environ["CLOUDPRINTER_API_KEY"]
 
@@ -99,6 +113,6 @@ async def submit_order(
         resp = await client.post(f"{_BASE}/orders/add", json=payload, timeout=30.0)
 
         if not resp.is_success:
-            raise RuntimeError(f"Cloudprinter {resp.status_code}: {resp.text}")
+            raise CloudprinterError(resp.status_code, resp.text)
 
         return resp.json()

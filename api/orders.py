@@ -1,14 +1,4 @@
-"""POST /api/orders — Vercel Python serverless function.
-
-Handles the full order flow:
-  1. Validate the request
-  2. Generate a PDF in memory via the bizcard package
-  3. Upload to Vercel Blob (permanent public URL)
-  4. Submit to Cloudprinter CloudCore 1.0
-  5. Append to output/orders.jsonl
-
-Vercel invokes the `handler` variable (a Mangum ASGI adapter wrapping the FastAPI app).
-"""
+"""POST /api/orders — Vercel Python serverless function."""
 from __future__ import annotations
 
 import json
@@ -18,7 +8,6 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Ensure project root and api/ are both importable regardless of Vercel's cwd
 _root = Path(__file__).parent.parent
 _api = Path(__file__).parent
 for _p in (str(_root), str(_api)):
@@ -33,7 +22,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
 from _models import CardOrderRequest, OrderResponse
-from _cloudprinter import submit_order
+from _cloudprinter import CloudprinterError, submit_order
 from _generator import generate_pdf_bytes
 from _storage import upload_to_blob
 
@@ -68,7 +57,7 @@ async def create_order(req: CardOrderRequest) -> OrderResponse:
         _log(order_ref, req, "failed", f"Blob upload: {exc}")
         raise HTTPException(status_code=502, detail=f"Storage upload failed: {exc}")
 
-    # 3. Submit to Cloudprinter
+    # 3. Submit to Cloudprinter — surface the exact status code and response body
     try:
         cp_response = await submit_order(
             reference=order_ref,
@@ -77,9 +66,14 @@ async def create_order(req: CardOrderRequest) -> OrderResponse:
             file_md5=md5,
             notification_email=notification_email,
         )
+    except CloudprinterError as exc:
+        detail = f"Cloudprinter API error (HTTP {exc.status_code}):\n{exc.body}"
+        _log(order_ref, req, "failed", detail)
+        raise HTTPException(status_code=502, detail=detail)
     except Exception as exc:
-        _log(order_ref, req, "failed", f"Cloudprinter: {exc}")
-        raise HTTPException(status_code=502, detail=f"Cloudprinter submission failed: {exc}")
+        detail = f"Cloudprinter request failed: {exc}"
+        _log(order_ref, req, "failed", detail)
+        raise HTTPException(status_code=502, detail=detail)
 
     _log(order_ref, req, "submitted", cp_response)
 
@@ -108,5 +102,4 @@ def _log(reference: str, req: CardOrderRequest, status: str, detail: object) -> 
         pass
 
 
-# Vercel invokes this as the ASGI handler
 handler = Mangum(app, lifespan="off")
