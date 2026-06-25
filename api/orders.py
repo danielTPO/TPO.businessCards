@@ -59,7 +59,7 @@ async def create_order(req: CardOrderRequest) -> OrderResponse:
 
     # 3. Submit to Cloudprinter — surface the exact status code and response body
     try:
-        cp_response = await submit_order(
+        cp_response, cp_payload = await submit_order(
             reference=order_ref,
             quantity=req.quantity,
             file_url=file_url,
@@ -68,14 +68,14 @@ async def create_order(req: CardOrderRequest) -> OrderResponse:
         )
     except CloudprinterError as exc:
         detail = f"Cloudprinter API error (HTTP {exc.status_code}):\n{exc.body}"
-        _log(order_ref, req, "failed", detail)
+        _log(order_ref, req, "failed", detail, payload=exc.payload)
         raise HTTPException(status_code=502, detail=detail)
     except Exception as exc:
         detail = f"Cloudprinter request failed: {exc}"
         _log(order_ref, req, "failed", detail)
         raise HTTPException(status_code=502, detail=detail)
 
-    _log(order_ref, req, "submitted", cp_response)
+    _log(order_ref, req, "submitted", cp_response, payload=cp_payload)
 
     return OrderResponse(
         reference=order_ref,
@@ -84,7 +84,7 @@ async def create_order(req: CardOrderRequest) -> OrderResponse:
     )
 
 
-def _log(reference: str, req: CardOrderRequest, status: str, detail: object) -> None:
+def _log(reference: str, req: CardOrderRequest, status: str, detail: object, *, payload: dict | None = None) -> None:
     try:
         _LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
         entry = {
@@ -96,6 +96,8 @@ def _log(reference: str, req: CardOrderRequest, status: str, detail: object) -> 
             "status": status,
             "detail": detail if isinstance(detail, str) else str(detail),
         }
+        if payload is not None:
+            entry["cloudprinter_payload"] = payload
         with _LOG_PATH.open("a") as f:
             f.write(json.dumps(entry) + "\n")
     except Exception:

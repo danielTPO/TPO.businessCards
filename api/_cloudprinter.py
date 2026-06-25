@@ -12,21 +12,25 @@ _BASE = "https://api.cloudprinter.com/cloudcore/1.0"
 _DELIVERY_ADDRESS = {
     "type": "delivery",
     "company": "TPO Group",
+    "firstname": "Rob",
+    "lastname": "Knake",
     "street1": "5 Moulton St, 6th FL",
     "zip": "04101",
     "city": "Portland",
     "state": "ME",
     "country": "US",
+    "email": "d@tpo.group",
+    "phone": "+1-207-239-9633",
 }
 
 
 class CloudprinterError(Exception):
     """Raised when Cloudprinter returns a non-2xx response."""
 
-    def __init__(self, status_code: int, body: str) -> None:
+    def __init__(self, status_code: int, body: str, payload: dict | None = None) -> None:
         self.status_code = status_code
+        self.payload = payload
         self.body = body
-        # Try to pretty-print JSON bodies for readability
         try:
             parsed = json.loads(body)
             self.body = json.dumps(parsed, indent=2)
@@ -54,7 +58,7 @@ async def _fetch_quote(
         "items": [{
             "reference": "item-001",
             "product": "businesscard_ds_70x30_mm_bc_fc",
-            "count": quantity,
+            "count": str(quantity),
             "options": _item_options(quantity),
         }],
     }
@@ -97,7 +101,7 @@ async def submit_order(
             "items": [{
                 "reference": f"{reference}-item",
                 "product": "businesscard_ds_70x30_mm_bc_fc",
-                "count": quantity,
+                "count": str(quantity),
                 "files": [{
                     "type": "content",
                     "url": file_url,
@@ -113,6 +117,6 @@ async def submit_order(
         resp = await client.post(f"{_BASE}/orders/add", json=payload, timeout=30.0)
 
         if not resp.is_success:
-            raise CloudprinterError(resp.status_code, resp.text)
+            raise CloudprinterError(resp.status_code, resp.text, payload)
 
-        return resp.json()
+        return resp.json(), payload
