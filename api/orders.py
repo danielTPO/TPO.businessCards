@@ -1,4 +1,4 @@
-"""POST /api/orders — Vercel Python serverless function."""
+"""POST /api/orders — FastAPI app served by uvicorn."""
 from __future__ import annotations
 
 import json
@@ -19,7 +19,7 @@ load_dotenv(_root / ".env")
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from mangum import Mangum
+from fastapi.staticfiles import StaticFiles
 
 from _models import CardOrderRequest, OrderResponse
 from _cloudprinter import CloudprinterError, submit_order
@@ -104,4 +104,7 @@ def _log(reference: str, req: CardOrderRequest, status: str, detail: object, *, 
         pass
 
 
-handler = Mangum(app, lifespan="off")
+# Serve the built React frontend — must come after all API routes
+_dist = _root / "dist"
+if _dist.exists():
+    app.mount("/", StaticFiles(directory=str(_dist), html=True), name="static")
