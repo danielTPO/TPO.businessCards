@@ -1,14 +1,21 @@
-"""S3-compatible object storage — uploads PDF bytes and returns a public URL.
+"""Object storage — uploads PDF bytes and returns a public URL.
 
-Works with AWS S3, Cloudflare R2, DigitalOcean Spaces, Backblaze B2, or any
-S3-compatible provider. Configure via environment variables:
+Supports two modes:
+  1. Local filesystem (for testing/dev) — configure LOCAL_STORAGE_DIR
+  2. S3-compatible (for production) — configure S3_* variables
 
-  S3_ACCESS_KEY_ID       Access key (required)
-  S3_SECRET_ACCESS_KEY   Secret key (required)
-  S3_BUCKET              Bucket name (required)
+LOCAL STORAGE (Testing)
+  LOCAL_STORAGE_DIR      Directory to store PDFs, e.g. /tmp/bizcards
+                         When set, files are served from this local directory.
+                         Overrides S3 configuration.
+
+S3-COMPATIBLE STORAGE (Production)
+  S3_ACCESS_KEY_ID       Access key (required for S3)
+  S3_SECRET_ACCESS_KEY   Secret key (required for S3)
+  S3_BUCKET              Bucket name (required for S3)
   S3_ENDPOINT_URL        Custom endpoint for non-AWS providers, e.g.
-                           https://<account>.r2.cloudflarestorage.com  (R2)
-                           https://nyc3.digitaloceanspaces.com          (DO)
+                           https://<account_id>.r2.cloudflarestorage.com  (R2)
+                           https://nyc3.digitaloceanspaces.com            (DO)
                          Omit for standard AWS S3.
   S3_REGION              Region string; use "auto" for Cloudflare R2.
                          Defaults to "us-east-1".
@@ -17,21 +24,31 @@ S3-compatible provider. Configure via environment variables:
                            https://<bucket>.s3.amazonaws.com  (S3 static site)
                          When set, objects are returned as a plain public URL.
                          When omitted, a 7-day presigned URL is used instead.
-
-Cloudprinter fetches the PDF when it processes the print job, so the URL must
-remain accessible for at least several days. The 7-day presigned URL fallback
-satisfies this for standard orders.
 """
 from __future__ import annotations
 
 import asyncio
 import os
+from pathlib import Path
 
 import boto3
 from botocore.config import Config
 
 
-def _upload_sync(pdf_bytes: bytes, key: str) -> str:
+def _upload_local(pdf_bytes: bytes, key: str) -> str:
+    """Upload to local filesystem and return a file URL."""
+    storage_dir = Path(os.environ["LOCAL_STORAGE_DIR"])
+    storage_dir.mkdir(parents=True, exist_ok=True)
+    
+    filepath = storage_dir / key
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    filepath.write_bytes(pdf_bytes)
+    
+    return f"file://{filepath.absolute()}"
+
+
+def _upload_s3(pdf_bytes: bytes, key: str) -> str:
+    """Upload to S3-compatible storage and return a public URL."""
     s3 = boto3.client(
         "s3",
         endpoint_url=os.environ.get("S3_ENDPOINT_URL") or None,
@@ -61,5 +78,10 @@ def _upload_sync(pdf_bytes: bytes, key: str) -> str:
 
 
 async def upload_to_blob(pdf_bytes: bytes, pathname: str) -> str:
-    """Upload PDF bytes to S3-compatible storage and return a public URL."""
-    return await asyncio.to_thread(_upload_sync, pdf_bytes, pathname)
+    """Upload PDF bytes to storage and return a public URL.
+    
+    Uses local filesystem if LOCAL_STORAGE_DIR is set, otherwise uses S3.
+    """
+    if os.environ.get("LOCAL_STORAGE_DIR"):
+        return await asyncio.to_thread(_upload_local, pdf_bytes, pathname)
+    return await asyncio.to_thread(_upload_s3, pdf_bytes, pathname)
