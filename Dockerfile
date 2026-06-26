@@ -1,8 +1,8 @@
 # Stage 1 — build React frontend
 FROM node:20-slim AS frontend
 WORKDIR /app
-COPY package.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci
 COPY . .
 RUN npm run build
 
@@ -24,6 +24,8 @@ COPY --from=frontend /app/dist ./dist
 
 RUN pip install --no-cache-dir -e .
 RUN fc-cache -fv
+RUN chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 8000
-CMD ["uvicorn", "api.orders:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["serve"]

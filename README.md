@@ -249,9 +249,13 @@ Or via a `.env` file in the working directory.
 ```bash
 docker build -t bizcard .
 
-docker run --rm -v "$PWD/output:/data/output" bizcard generate \
-  --name "Jane Smith" --title "Senior Engineer" --email jane@acme.com \
-  --output /data/output/
+docker run --rm -v "$PWD/output:/data/output" bizcard generate --name "Jane Smith" --title "Senior Engineer" --email jane@acme.com --output /data/output/
+
+For the web app, run:
+
+```bash
+docker run --rm -p 8000:8000 --env-file .env bizcard
+```
 ```
 
 The Dockerfile downloads the Inter font family automatically during the build.
